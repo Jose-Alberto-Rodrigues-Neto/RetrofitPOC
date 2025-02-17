@@ -67,5 +67,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     //Coil
     implementation("io.coil-kt:coil-compose:2.5.0")
-
+    //DotEnv
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 }

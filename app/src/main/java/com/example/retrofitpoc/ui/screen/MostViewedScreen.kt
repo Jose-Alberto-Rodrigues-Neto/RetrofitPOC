@@ -113,8 +113,9 @@ fun ArticleCard(
     modifier: Modifier,
     articles: Articles
 ) {
-    val media: Media = articles.media[0]
-    val mediaMetaData: MediaMetaData = media.mediametadata[2]
+    val mediaIsNotEmpty = articles.media.isNotEmpty()
+    val media: Media? = if(mediaIsNotEmpty) articles.media[0] else null
+    val mediaMetaData: MediaMetaData? = media?.mediametadata?.get(2)
 
     Card(
         modifier = modifier
@@ -128,13 +129,15 @@ fun ArticleCard(
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
-            AsyncImage(
-                model = mediaMetaData.url,
-                contentDescription = mediaMetaData.format,
-                modifier = Modifier
-                    .fillMaxWidth(0.5f),
-                contentScale = ContentScale.FillBounds
-            )
+            if (mediaMetaData != null) {
+                AsyncImage(
+                    model = mediaMetaData.url,
+                    contentDescription = mediaMetaData.format,
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
             Column(
                 modifier = Modifier
                     .padding(4.dp),
