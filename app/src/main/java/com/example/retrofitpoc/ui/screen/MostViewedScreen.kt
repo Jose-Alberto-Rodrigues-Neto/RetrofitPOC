@@ -1,5 +1,7 @@
 package com.example.retrofitpoc.ui.screen
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -43,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -127,6 +133,8 @@ fun ArticleSheet(
     articles: Articles,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+
     val mediaIsNotEmpty = articles.media.isNotEmpty()
     val media: Media? = if (mediaIsNotEmpty) articles.media[0] else null
     val mediaMetaData: MediaMetaData? = media?.mediametadata?.get(2)
@@ -134,6 +142,7 @@ fun ArticleSheet(
     ModalBottomSheet(
         onDismissRequest = { onDismiss() },
         modifier = modifier,
+        sheetState = SheetState(skipPartiallyExpanded = true)
     ) {
         Column(
             modifier = Modifier
@@ -166,6 +175,17 @@ fun ArticleSheet(
                 text = articles.byline
             )
             Text(text = articles.published_date)
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(articles.url))
+                    context.startActivity(intent)
+                },
+            ) {
+                Text("Go to website!")
+            }
         }
     }
 }
@@ -192,7 +212,8 @@ fun ArticleCard(
 
     Card(
         modifier = modifier
-            .fillMaxWidth().clickable { isSheetOpen = true },
+            .fillMaxWidth()
+            .clickable { isSheetOpen = true },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
