@@ -2,6 +2,7 @@ package com.example.retrofitpoc.ui.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,16 +19,25 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,7 +77,7 @@ fun MostViewedScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(vertical = 2.dp, horizontal = 10.dp)
-    ){
+    ) {
         NYTTopBar()
         when {
             isLoading -> Box(
@@ -88,6 +98,7 @@ fun MostViewedScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListOfArticles(
     modifier: Modifier,
@@ -106,6 +117,57 @@ fun ListOfArticles(
             Spacer(modifier = Modifier.heightIn(10.dp))
         }
     }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ArticleSheet(
+    modifier: Modifier,
+    articles: Articles,
+    onDismiss: () -> Unit
+) {
+    val mediaIsNotEmpty = articles.media.isNotEmpty()
+    val media: Media? = if (mediaIsNotEmpty) articles.media[0] else null
+    val mediaMetaData: MediaMetaData? = media?.mediametadata?.get(2)
+
+    ModalBottomSheet(
+        onDismissRequest = { onDismiss() },
+        modifier = modifier,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)
+        ) {
+            if (mediaMetaData != null) {
+                AsyncImage(
+                    model = mediaMetaData.url,
+                    contentDescription = mediaMetaData.format,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Spacer(modifier = Modifier.heightIn(20.dp))
+            Text(
+                text = articles.title,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.heightIn(5.dp))
+            Text(
+                text = articles.abstract,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Normal
+            )
+            Spacer(modifier = Modifier.heightIn(10.dp))
+            Text(
+                text = articles.byline
+            )
+            Text(text = articles.published_date)
+        }
+    }
 }
 
 @Composable
@@ -114,12 +176,23 @@ fun ArticleCard(
     articles: Articles
 ) {
     val mediaIsNotEmpty = articles.media.isNotEmpty()
-    val media: Media? = if(mediaIsNotEmpty) articles.media[0] else null
+    val media: Media? = if (mediaIsNotEmpty) articles.media[0] else null
     val mediaMetaData: MediaMetaData? = media?.mediametadata?.get(2)
+    var isSheetOpen by remember { mutableStateOf(false) }
+
+    if (isSheetOpen) {
+        ArticleSheet(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            articles = articles,
+            onDismiss = { isSheetOpen = false }
+        )
+    }
 
     Card(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth().clickable { isSheetOpen = true },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -164,13 +237,13 @@ fun ArticleCard(
 }
 
 @Composable
-fun NYTTopBar(){
+fun NYTTopBar() {
     Row(
         modifier = Modifier
             .fillMaxHeight(0.12f)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         Image(
             modifier = Modifier.fillMaxSize(),
             painter = painterResource(R.drawable.the_new_york_times_logo),
